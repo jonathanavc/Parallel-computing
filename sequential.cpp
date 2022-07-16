@@ -1,9 +1,14 @@
 #include <iostream>
 #include <math.h>
 #include "./metrictime.hpp"
-int main(){
-    unsigned int m = 128;
-    unsigned int k = 1<<20;
+
+int main(int argc, char const *argv[]){
+    if(argc != 3 ) {
+        std::cout << "🤨🤨🤨" << std::endl;
+        return 1; 
+    }
+    unsigned int m = atoi(argv[1]);
+    unsigned int k = atoi(argv[2]);
 
     long long tamano = m * k;
     int * memory = (int *)malloc(m * k * sizeof(int));     
@@ -16,8 +21,6 @@ int main(){
             memory[i * k + j] = j+1;
         }
     }
-    
-
 
     TIMERSTART(SEQUENTIAL);
 
@@ -46,14 +49,14 @@ int main(){
     }
 
     TIMERSTOP(SEQUENTIAL);
-    /*
+    
     for (long long i = 0; i < m; i++)
     {
         std::cout << "Mean: " << resultados[i * 4];
         std::cout << ", Max: " << resultados[i * 4 + 1];
         std::cout << ", Min: " << resultados[i * 4 + 2];
         std::cout << ", Desv: " << resultados[i * 4 + 3] << std::endl;
-    }*/
+    }
     
     return 0;
 }

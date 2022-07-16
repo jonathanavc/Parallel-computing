@@ -121,7 +121,7 @@ int main(int argc, char const *argv[])
     {
         for (long long int j = 0; j < k; j++)
         {
-            h_memory[i * k + j] = j+1;
+            h_memory[i * k + j] = random()%(k + 1);
         }
     }
 
