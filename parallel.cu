@@ -2,7 +2,7 @@
 #include <iostream>
 #include "./metrictime.hpp"
 
-#define block_dim 2048
+#define  block_dim 2048
 
 __global__ void mean_array(int *d_memory, double *d_resultados, int k, int m)
 { 
