@@ -8,7 +8,7 @@ int main(int argc, char const *argv[]){
         return 1; 
     }
     unsigned int m = atoi(argv[1]);
-    unsigned int k = atoi(argv[2]);
+    unsigned int k = 2 << atoi(argv[2]);
 
     long long tamano = m * k;
     int * memory = (int *)malloc(m * k * sizeof(int));     
@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]){
     }
 
     TIMERSTOP(SEQUENTIAL);
-    
+    /*
     for (long long i = 0; i < m; i++)
     {
         std::cout << "Mean: " << resultados[i * 4];
@@ -57,6 +57,8 @@ int main(int argc, char const *argv[]){
         std::cout << ", Min: " << resultados[i * 4 + 2];
         std::cout << ", Desv: " << resultados[i * 4 + 3] << std::endl;
     }
-    
+    */
+    free(memory);
+    free(resultados);
     return 0;
 }

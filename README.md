@@ -7,5 +7,3 @@
 ## **Usage sequential** 
 * ` g++ sequential.cpp -lm -g -o s.out `
 * ` ./s.out M K `  M = number of arrays, K = number of elements in array
-
-
