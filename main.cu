@@ -14,46 +14,46 @@ __global__ void mean_array(int *d_memory, double *d_resultados, int k, int m)
 
     if (thread_id > m * 4) return;
 
-    int id_array = thread_id / 4;
-    int id_thread = thread_id % 4;
+    int array_id = thread_id / 4;
+    int op_id = thread_id % 4;
 
     double resultado = 0;
-    if (id_thread == 0){
+    if (op_id == 0){
         for (int i = 0; i < k; i++){
-            resultado += d_memory[id_array * k + i];
+            resultado += d_memory[array_id * k + i];
         }
         resultado = resultado / k;
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    else if (id_thread == 1){
-        resultado = d_memory[id_array * k];
+    else if (op_id == 1){
+        resultado = d_memory[array_id * k];
          for (int i = 1; i < k; i++){
-            if (d_memory[id_array * k + i] > resultado)
-                resultado = d_memory[id_array * k + i];
+            if (d_memory[array_id * k + i] > resultado)
+                resultado = d_memory[array_id * k + i];
         }
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    else if (id_thread == 2){
-        resultado = d_memory[id_array * k];
+    else if (op_id == 2){
+        resultado = d_memory[array_id * k];
         for (int i = 1; i < k; i++){
-            if (resultado > d_memory[id_array * k + i])
-                resultado = d_memory[id_array * k + i];
+            if (resultado > d_memory[array_id * k + i])
+                resultado = d_memory[array_id * k + i];
         }
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    if (id_thread == 3){
+    if (op_id == 3){
         double prom = 0;
         for (int i = 0; i < k; i++){
-            prom += d_memory[id_array * k + i];
+            prom += d_memory[array_id * k + i];
         }
         prom = prom / k;
         for (int i = 0; i < k; i++){
-            float aux = d_memory[id_array * k + i] - prom;
+            float aux = d_memory[array_id * k + i] - prom;
             resultado += aux * aux;
         }
         resultado = resultado / k;
         resultado = sqrt(resultado);
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
 
     //
@@ -61,42 +61,42 @@ __global__ void mean_array(int *d_memory, double *d_resultados, int k, int m)
 
 
     /*
-    int id_array = blockIdx.x;
-    int id_thread = threadIdx.x;
+    int array_id = blockIdx.x;
+    int op_id = threadIdx.x;
 
     double resultado = 0;
-    if (id_thread == 0){
+    if (op_id == 0){
         for (int i = 0; i < k; i++){
-            resultado += d_memory[id_array * k + i];
+            resultado += d_memory[array_id * k + i];
         }
         resultado = resultado / k;
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    else if (id_thread == 1){
-        resultado = d_memory[id_array * k];
+    else if (op_id == 1){
+        resultado = d_memory[array_id * k];
          for (int i = 1; i < k; i++){
-            if (d_memory[id_array * k + i] > resultado)
-                resultado = d_memory[id_array * k + i];
+            if (d_memory[array_id * k + i] > resultado)
+                resultado = d_memory[array_id * k + i];
         }
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    else if (id_thread == 2){
-        resultado = d_memory[id_array * k];
+    else if (op_id == 2){
+        resultado = d_memory[array_id * k];
         for (int i = 1; i < k; i++){
-            if (resultado > d_memory[id_array * k + i])
-                resultado = d_memory[id_array * k + i];
+            if (resultado > d_memory[array_id * k + i])
+                resultado = d_memory[array_id * k + i];
         }
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
-    if (id_thread == 3){
+    if (op_id == 3){
         
         for (int i = 0; i < k; i++){
-            float aux = d_memory[id_array * k + i] - d_resultados[id_array * 4];
+            float aux = d_memory[array_id * k + i] - d_resultados[array_id * 4];
             resultado += aux * aux;
         }
         resultado = resultado / k;
         resultado = sqrt(resultado);
-        d_resultados[id_array * 4 + id_thread] = resultado;
+        d_resultados[array_id * 4 + op_id] = resultado;
     }
 
     */
