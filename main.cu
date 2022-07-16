@@ -1,103 +1,148 @@
 #include <cuda_runtime.h>
 #include <iostream>
+#include "./metrictime.hpp"
+
+#define block_dim 16
 // vo eri bueno🤨🤨🤨🤨🤨🤨🤨
 // asi era la wea o no ? con .cu? .culia
 
 // static int block_dim = 128; // hebras por
 
-__global__ void mean_array(int *d_memory, double *d_resultados, int k)
+__global__ void mean_array(int *d_memory, double *d_resultados, int k, int m)
 { // esta wea es cudaaaaaaaaaaaa se  pera 1 seg 😶‍🌫️😶‍🌫️😶‍🌫️😶‍🌫️😶‍🌫️😶‍🌫️😶‍🌫️😶‍🌫️
+    int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (thread_id > m * 4) return;
+
+    int id_array = thread_id / 4;
+    int id_thread = thread_id % 4;
+
+    double resultado = 0;
+    if (id_thread == 0){
+        for (int i = 0; i < k; i++){
+            resultado += d_memory[id_array * k + i];
+        }
+        resultado = resultado / k;
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+    else if (id_thread == 1){
+        resultado = d_memory[id_array * k];
+         for (int i = 1; i < k; i++){
+            if (d_memory[id_array * k + i] > resultado)
+                resultado = d_memory[id_array * k + i];
+        }
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+    else if (id_thread == 2){
+        resultado = d_memory[id_array * k];
+        for (int i = 1; i < k; i++){
+            if (resultado > d_memory[id_array * k + i])
+                resultado = d_memory[id_array * k + i];
+        }
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+    if (id_thread == 3){
+        double prom = 0;
+        for (int i = 0; i < k; i++){
+            prom += d_memory[id_array * k + i];
+        }
+        prom = prom / k;
+        for (int i = 0; i < k; i++){
+            float aux = d_memory[id_array * k + i] - prom;
+            resultado += aux * aux;
+        }
+        resultado = resultado / k;
+        resultado = sqrt(resultado);
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+
+    //
+
+
+
+    /*
     int id_array = blockIdx.x;
     int id_thread = threadIdx.x;
 
     double resultado = 0;
-    if (id_thread == 0)
-    {
-        for (int i = 0; i < k; i++)
-        {
+    if (id_thread == 0){
+        for (int i = 0; i < k; i++){
             resultado += d_memory[id_array * k + i];
         }
         resultado = resultado / k;
+        d_resultados[id_array * 4 + id_thread] = resultado;
     }
-    else if (id_thread == 1)
-    {
-    }
-    else if (id_thread == 2)
-    {
-    }
-    else if (id_thread == 3)
-    {
-    }
-    switch (id_thread)
-    {
-    case (0):
-        for (int i = 0; i < k; i++)
-        {
-            resultado += d_memory[id_array * k + i];
-        }
-        resultado = resultado / k;
-        break;
-    case (1):
+    else if (id_thread == 1){
         resultado = d_memory[id_array * k];
-        for (int i = 1; i < k; i++)
-        {
+         for (int i = 1; i < k; i++){
             if (d_memory[id_array * k + i] > resultado)
                 resultado = d_memory[id_array * k + i];
         }
-        break;
-    case (2):
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+    else if (id_thread == 2){
         resultado = d_memory[id_array * k];
-        for (int i = 1; i < k; i++)
-        {
+        for (int i = 1; i < k; i++){
             if (resultado > d_memory[id_array * k + i])
                 resultado = d_memory[id_array * k + i];
         }
-        break;
-    case (3):
-        for (int i = 0; i < k; i++)
-        {
+        d_resultados[id_array * 4 + id_thread] = resultado;
+    }
+    if (id_thread == 3){
+        
+        for (int i = 0; i < k; i++){
             float aux = d_memory[id_array * k + i] - d_resultados[id_array * 4];
             resultado += aux * aux;
         }
         resultado = resultado / k;
         resultado = sqrt(resultado);
-        break;
+        d_resultados[id_array * 4 + id_thread] = resultado;
     }
-    d_resultados[id_array * 4 + id_thread] = resultado;
+
+    */
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
-    int m = 10;
-    int k = 10000;
+    if(argc != 3 ) {
+        std::cout << "🤨🤨🤨" << std::endl;
+        return 1; 
+    }
+    unsigned int m = atoi(argv[1]);
+    unsigned int k = atoi(argv[2]);
 
-    int tamano = m * k;
-    int h_memory[m * k];        // array del host
-    double h_resultados[m * 4]; // aquí se guardan los resultados
-    int *d_memory;              // array de la gpu, se copian el array del host
-    double *d_resultados;       // aquí se guardan los resultados
+    long long tamano = m * k;
+    int * h_memory = (int *)malloc(m * k * sizeof(int));                // array del host
+    double * h_resultados = (double *)malloc(m * 4 * sizeof(double));   // aquí se guardan los resultados
+    int *d_memory;                                                      // array de la gpu, se copian el array del host
+    double *d_resultados;                                               // aquí se guardan los resultados
 
     for (int i = 0; i < m; i++)
     {
-        for (int j = 0; j < k; j++)
+        for (long long int j = 0; j < k; j++)
         {
-            h_memory[i * k + j] = j;
+            h_memory[i * k + j] = j+1;
         }
     }
 
-    cudaMalloc((void **)&d_memory, tamano * sizeof(int));       // robando memoria 🥷
+    cudaMalloc((void **)&d_memory, tamano * sizeof(int));       // robando memoria 🥷  🤑
     cudaMalloc((void **)&d_resultados, m * 4 * sizeof(double)); // robando memoria 🥷
+
+    TIMERSTART(CUDA);
 
     cudaMemcpy(d_memory, h_memory, tamano * sizeof(int), cudaMemcpyHostToDevice);
 
-    dim3 blkDim(4, 1, 1);
-    dim3 grdDim(m, 1, 1);
-
-    mean_array<<<grdDim, blkDim>>>(d_memory, d_resultados, k);
+    dim3 blkDim(block_dim, 1, 1);
+    dim3 grdDim((m * 4 + block_dim - 1)/block_dim, 1, 1);
+    mean_array<<<grdDim, blkDim>>>(d_memory, d_resultados, k, m);
+    
+    cudaDeviceSynchronize();
 
     cudaMemcpy(h_resultados, d_resultados, m * 4 * sizeof(double), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < m; i++)
+    TIMERSTOP(CUDA);
+
+    for (long long i = 0; i < m; i++)
     {
         std::cout << "Mean: " << h_resultados[i * 4];
         std::cout << ", Max: " << h_resultados[i * 4 + 1];
